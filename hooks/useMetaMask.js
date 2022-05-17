@@ -55,18 +55,22 @@ export const useMetaMask = () => {
         }
     }, [])
 
-    // Set isConnected and message on accounts change.
+    // Set states that depends on accounts state.
     useEffect(() => {
         try {
             // Required metamask installed.
             isMetamaskInstalled()
             if (accounts.length > 0) {
                 setIsConnected(true)
+                setDisableButton(true)
                 setMessage(`You are connected with this account : ${accounts[0]}`)
+                handleBalanceChange(accounts[0])
             }
             else {
                 setIsConnected(false)
+                setDisableButton(false)
                 setMessage('')
+                setBalance(0)
             }
         } catch (err) {
             console.error(err)
@@ -92,6 +96,18 @@ export const useMetaMask = () => {
         return chainId
     }
 
+    const getBalance = async (account) => {
+        const provider = new ethers.providers.Web3Provider(window.ethereum)
+        const balanceInWei = await provider.getBalance(account)
+        const balanceInEth = ethers.utils.formatEther(balanceInWei)
+        return balanceInEth
+    }
+
+    const handleBalanceChange = async (account) => {
+        const balance = await getBalance(account)
+        setBalance(balance)
+    }
+
     // TODO : Implement handleConnect()
     const handleConnect = connectInfo => {
         console.log(connectInfo)
@@ -113,13 +129,10 @@ export const useMetaMask = () => {
     const connect = async () => {
         try {
             isMetamaskInstalled()
-            const [connectedAccount] = await getConnectedAccounts()
+            if (isConnected) return
 
-            if (!connectedAccount) {
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-                setAccounts(accounts)
-            }
-            else setAccounts([connectedAccount])
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+            setAccounts(accounts)
         }
         catch (err) {
             if (err.code === 4001) {
@@ -134,10 +147,6 @@ export const useMetaMask = () => {
         }
     }
 
-    const disconnect = async () => {
-        console.log('disconnect')
-    }
-
     return {
         accounts,
         chainId,
@@ -145,7 +154,6 @@ export const useMetaMask = () => {
         message,
         disableButton,
         isConnected,
-        connect,
-        disconnect
+        connect
     }
 }
