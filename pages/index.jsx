@@ -1,13 +1,11 @@
 import Head from 'next/head'
 import Image from 'next/image'
-import { ethers } from 'ethers'
 import { useState, useEffect } from 'react'
 import { useMetaMask } from '../hooks/useMetaMask'
 
 const Home = () => {
   const { accounts, message, enableButton, connect } = useMetaMask()
   const [loading, setLoading] = useState(true)
-  const [balance, setBalance] = useState(0)
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
 

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
+import { ethers } from 'ethers'
 
 export const useMetaMask = () => {
     const [accounts, setAccounts] = useState([])
     const [chainId, setChaindId] = useState('')
+    const [balance, setBalance] = useState(0)
     const [message, setMessage] = useState('')
     const [enableButton, setEnableButton] = useState(false)
 
@@ -10,7 +12,7 @@ export const useMetaMask = () => {
     useEffect(() => {
         (async function () {
             try {
-                // Required metamask installed.
+                // Require metamask installed.
                 isMetamaskInstalled()
                 const [connectedAccount] = await getConnectedAccounts()
                 const chainId = await getChainId()
@@ -24,76 +26,27 @@ export const useMetaMask = () => {
         })()
     }, [])
 
-    /* 
-     * Set event listener + handler for metamask connect event on mount.
-     * The MetaMask provider emits this event when it first becomes able to submit RPC requests to a chain.
-     */
+    // Set event listeners + handlers for metamask events on mount.
     useEffect(() => {
         try {
-            // Required metamask installed.
+            // Require metamask installed.
             isMetamaskInstalled()
-            // TODO : Implement handleConnect()
-            const handleConnect = connectInfo => {
-                console.log(connectInfo)
-            }
+            /**
+             * @param {String} connect - The MetaMask provider emits this event when it first becomes able to submit RPC requests to a chain.
+             * @param {String} disconnect - The MetaMask provider emits this event when it is unable to submit RPC requests to a chain.
+             *                              In general, this will only happen due to network connectivity issues or some unforeseen error.
+             * @param {String} accountsChanged - The MetaMask provider emits this event whenever the return value of the eth_accounts RPC method changes.
+             * @param {String} chainChanged - The MetaMask provider emits this event when the chain changes.
+             */
             window.ethereum.on('connect', handleConnect)
+            window.ethereum.on('disconnect', handleDisconnect)
+            window.ethereum.on('accountsChanged', handleAccountsChange)
+            window.ethereum.on('chainChanged', handleChainChange)
+
             return () => {
                 window.ethereum.removeListener('connect', handleConnect)
-            }
-        } catch (err) {
-            console.error(err)
-        }
-    }, [])
-
-    /* 
-     * Set event listener + handler for metamask disconnect event on mount.
-     * The MetaMask provider emits this event if it becomes unable to submit RPC requests to any chain. 
-     * In general, this will only happen due to network connectivity issues or some unforeseen error.
-     */
-    useEffect(() => {
-        try {
-            // Required metamask installed.
-            isMetamaskInstalled()
-            // TODO : Implement handleDisconnect()
-            const handleDisconnect = err => {
-                console.error(err)
-            }
-            window.ethereum.on('disconnect', handleDisconnect)
-            return () => {
                 window.ethereum.removeListener('disconnect', handleDisconnect)
-            }
-        } catch (err) {
-            console.error(err)
-        }
-    }, [])
-
-    // Set event listener + handler for metamask account change event on mount.
-    useEffect(() => {
-        try {
-            // Required metamask installed.
-            isMetamaskInstalled()
-            const handleAccountsChange = accounts => {
-                setAccounts(accounts)
-            }
-            window.ethereum.on('accountsChanged', handleAccountsChange)
-            return () => {
                 window.ethereum.removeListener('accountsChanged', handleAccountsChange)
-            }
-        } catch (err) {
-            console.error(err)
-        }
-    }, [])
-
-    // Set event listener + handler for metamask chain change event on mount.
-    useEffect(() => {
-        try {
-            // Required metamask installed.
-            isMetamaskInstalled()
-            const handleChainChange = chainId => {
-                setChaindId(chainId)
-            }
-            window.ethereum.on('chainChanged', handleChainChange)
-            return () => {
                 window.ethereum.removeListener('chainChanged', handleChainChange)
             }
         } catch (err) {
@@ -138,6 +91,24 @@ export const useMetaMask = () => {
         return chainId
     }
 
+    // TODO : Implement handleConnect()
+    const handleConnect = connectInfo => {
+        console.log(connectInfo)
+    }
+
+    // TODO : Implement handleDisconnect()
+    const handleDisconnect = err => {
+        console.error(err)
+    }
+
+    const handleAccountsChange = accounts => {
+        setAccounts(accounts)
+    }
+
+    const handleChainChange = chainId => {
+        setChaindId(chainId)
+    }
+
     const connect = async () => {
         try {
             isMetamaskInstalled()
@@ -147,6 +118,7 @@ export const useMetaMask = () => {
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
                 setAccounts(accounts)
             }
+            else setAccounts([connectedAccount])
         }
         catch (err) {
             if (err.code === 4001) {
@@ -163,6 +135,8 @@ export const useMetaMask = () => {
 
     return {
         accounts,
+        chainId,
+        balance,
         message,
         enableButton,
         connect
