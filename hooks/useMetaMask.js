@@ -24,7 +24,50 @@ export const useMetaMask = () => {
         })()
     }, [])
 
-    // Set event listener + handler for metamask account change on mount.
+    /* 
+     * Set event listener + handler for metamask connect event on mount.
+     * The MetaMask provider emits this event when it first becomes able to submit RPC requests to a chain.
+     */
+    useEffect(() => {
+        try {
+            // Required metamask installed.
+            isMetamaskInstalled()
+            // TODO : Implement handleConnect()
+            const handleConnect = connectInfo => {
+                console.log(connectInfo)
+            }
+            window.ethereum.on('connect', handleConnect)
+            return () => {
+                window.ethereum.removeListener('connect', handleConnect)
+            }
+        } catch (err) {
+            console.error(err)
+        }
+    }, [])
+
+    /* 
+     * Set event listener + handler for metamask disconnect event on mount.
+     * The MetaMask provider emits this event if it becomes unable to submit RPC requests to any chain. 
+     * In general, this will only happen due to network connectivity issues or some unforeseen error.
+     */
+    useEffect(() => {
+        try {
+            // Required metamask installed.
+            isMetamaskInstalled()
+            // TODO : Implement handleDisconnect()
+            const handleDisconnect = err => {
+                console.error(err)
+            }
+            window.ethereum.on('disconnect', handleDisconnect)
+            return () => {
+                window.ethereum.removeListener('disconnect', handleDisconnect)
+            }
+        } catch (err) {
+            console.error(err)
+        }
+    }, [])
+
+    // Set event listener + handler for metamask account change event on mount.
     useEffect(() => {
         try {
             // Required metamask installed.
@@ -41,7 +84,7 @@ export const useMetaMask = () => {
         }
     }, [])
 
-    // Set event listener + handler for metamask chain change on mount.
+    // Set event listener + handler for metamask chain change event on mount.
     useEffect(() => {
         try {
             // Required metamask installed.
