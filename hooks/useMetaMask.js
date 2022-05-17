@@ -2,16 +2,21 @@ import { useState, useEffect } from 'react'
 
 export const useMetaMask = () => {
     const [accounts, setAccounts] = useState([])
+    const [chainId, setChaindId] = useState('')
     const [message, setMessage] = useState('')
-    const [enableButton, setEnableButton] = useState(true)
+    const [enableButton, setEnableButton] = useState(false)
 
-    // Check if already connected on mount, if so set accounts.
+    // Set initial states on mount.
     useEffect(() => {
         (async function () {
             try {
+                // Required metamask installed.
                 isMetamaskInstalled()
                 const [connectedAccount] = await getConnectedAccounts()
+                const chainId = await getChainId()
+
                 if (connectedAccount) setAccounts([connectedAccount])
+                if (chainId) setChaindId(chainId)
             }
             catch (err) {
                 console.error(err)
@@ -19,9 +24,10 @@ export const useMetaMask = () => {
         })()
     }, [])
 
-    // Set event listener for metamask account change on mount.
+    // Set event listener + handler for metamask account change on mount.
     useEffect(() => {
         try {
+            // Required metamask installed.
             isMetamaskInstalled()
             const handleAccountsChange = accounts => {
                 setAccounts(accounts)
@@ -35,21 +41,45 @@ export const useMetaMask = () => {
         }
     }, [])
 
+    // Set event listener + handler for metamask chain change on mount.
+    useEffect(() => {
+        try {
+            // Required metamask installed.
+            isMetamaskInstalled()
+            const handleChainChange = chainId => {
+                setChaindId(chainId)
+            }
+            window.ethereum.on('chainChanged', handleChainChange)
+            return () => {
+                window.ethereum.removeListener('chainChanged', handleChainChange)
+            }
+        } catch (err) {
+            console.error(err)
+        }
+    }, [])
+
     // Set enableButton and message on accounts change.
     useEffect(() => {
-        if (accounts.length > 0) {
-            setEnableButton(false)
-            setMessage(`You are connected with this account : ${accounts[0]}`)
-        }
-        else {
-            setEnableButton(true)
-            setMessage('')
+        try {
+            // Required metamask installed.
+            isMetamaskInstalled()
+            if (accounts.length > 0) {
+                setEnableButton(false)
+                setMessage(`You are connected with this account : ${accounts[0]}`)
+            }
+            else {
+                setEnableButton(true)
+                setMessage('')
+            }
+        } catch (err) {
+            console.error(err)
         }
     }, [accounts])
 
     // Check if metamask is installed and throw an error if not.
     const isMetamaskInstalled = () => {
         if (!window?.ethereum?.isMetaMask) {
+            setEnableButton(false)
             setMessage('Please install MetaMask')
             throw new Error('MetamaskNotInstalled')
         }
@@ -58,6 +88,11 @@ export const useMetaMask = () => {
     const getConnectedAccounts = async () => {
         const accounts = await window.ethereum.request({ method: 'eth_accounts' })
         return accounts
+    }
+
+    const getChainId = async () => {
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' })
+        return chainId
     }
 
     const connect = async () => {
