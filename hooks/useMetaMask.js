@@ -6,7 +6,8 @@ export const useMetaMask = () => {
     const [chainId, setChaindId] = useState('')
     const [balance, setBalance] = useState(0)
     const [message, setMessage] = useState('')
-    const [enableButton, setEnableButton] = useState(false)
+    const [disableButton, setDisableButton] = useState(false)
+    const [isConnected, setIsConnected] = useState(false)
 
     // Set initial states on mount.
     useEffect(() => {
@@ -54,17 +55,17 @@ export const useMetaMask = () => {
         }
     }, [])
 
-    // Set enableButton and message on accounts change.
+    // Set isConnected and message on accounts change.
     useEffect(() => {
         try {
             // Required metamask installed.
             isMetamaskInstalled()
             if (accounts.length > 0) {
-                setEnableButton(false)
+                setIsConnected(true)
                 setMessage(`You are connected with this account : ${accounts[0]}`)
             }
             else {
-                setEnableButton(true)
+                setIsConnected(false)
                 setMessage('')
             }
         } catch (err) {
@@ -75,7 +76,7 @@ export const useMetaMask = () => {
     // Check if metamask is installed and throw an error if not.
     const isMetamaskInstalled = () => {
         if (!window?.ethereum?.isMetaMask) {
-            setEnableButton(false)
+            setDisableButton(true)
             setMessage('Please install MetaMask')
             throw new Error('MetamaskNotInstalled')
         }
@@ -123,14 +124,18 @@ export const useMetaMask = () => {
         catch (err) {
             if (err.code === 4001) {
                 setMessage('Please connect to MetaMask.')
-                setEnableButton(true)
+                setDisableButton(false)
             }
             else if (err.code === -32002) {
                 setMessage('A request is already pending. Open Metasmask.')
-                setEnableButton(false)
+                setDisableButton(true)
             }
             else console.error(err)
         }
+    }
+
+    const disconnect = async () => {
+        console.log('disconnect')
     }
 
     return {
@@ -138,7 +143,9 @@ export const useMetaMask = () => {
         chainId,
         balance,
         message,
-        enableButton,
-        connect
+        disableButton,
+        isConnected,
+        connect,
+        disconnect
     }
 }

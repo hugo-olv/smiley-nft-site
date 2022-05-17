@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useMetaMask } from '../hooks/useMetaMask'
 
 const Home = () => {
-  const { accounts, chainId, balance, message, enableButton, isConnected, connect } = useMetaMask()
+  const { accounts, chainId, balance, message, disableButton, isConnected, connect, disconnect } = useMetaMask()
   const [loading, setLoading] = useState(true)
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
@@ -31,7 +31,7 @@ const Home = () => {
       </button>
     )
   }
-
+  console.log(isConnected)
   return (
     <div className={styles.container}>
       <Head>
@@ -40,9 +40,9 @@ const Home = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Button
-        variant={isConnected ? 'connect' : 'disconnect'}
-        onClick={isConnected ? connect : disconnect}
-        disabled={!enableButton}
+        variant={isConnected ? 'disconnect' : 'connect'}
+        onClick={isConnected ? disconnect : connect}
+        disabled={disableButton}
       />
       <p>{message}</p>
     </div>
