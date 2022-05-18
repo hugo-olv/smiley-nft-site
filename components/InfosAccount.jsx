@@ -1,6 +1,6 @@
 import { ConnectButton } from "."
 
-export const InfosAccount = ({ isConnected, message, balance }) => {
+export const InfosAccount = ({ isConnected, message, balance, disableButton, connect }) => {
     return (
         <>
             {!isConnected && (
