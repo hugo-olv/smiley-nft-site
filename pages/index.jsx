@@ -1,10 +1,11 @@
 import Head from 'next/head'
 import Image from 'next/image'
-import { useState, useEffect, useMemo } from 'react'
-import { useMetaMask } from '../hooks/useMetaMask'
 import { collection } from 'firebase/firestore'
 import { firestore } from '../firebase/clientApp'
 import { useCollection } from 'react-firebase-hooks/firestore'
+import { useState, useEffect, useMemo } from 'react'
+import { useMetaMask } from '../hooks/useMetaMask'
+import { InfosAccount } from '../components/InfosAccount'
 
 const Home = () => {
   const { accounts, chainId, balance, message, disableButton, isConnected, connect, disconnect } = useMetaMask()
@@ -25,38 +26,6 @@ const Home = () => {
 
   const styles = {
     container: "flex flex-col items-center h-screen"
-  }
-
-  const Button = ({ disabled, onClick }) => {
-    const styles = `
-    ${disabled ? 'bg-gray-400' : 'bg-[#F4841F] hover:bg-[#763E1A]'}
-    font-medium text-white py-2 px-4 rounded
-    `
-    return (
-      <button
-        className={styles}
-        disabled={disabled}
-        onClick={onClick}
-      >
-        Connect to Metamask
-      </button>
-    )
-  }
-
-  const InfosAccount = ({ isConnected, message, balance }) => {
-    return (
-      <>
-        {!isConnected && (
-          <Button
-            onClick={connect}
-            disabled={disableButton}
-          />
-        )}
-        {message && <p>{message}</p>}
-        {isConnected && <p>Your Balance : {balance} eth</p>}
-        {isConnected && balance < 0.3 && <p>You don't have enough ETH on your account to go on our whitelist.</p>}
-      </>
-    )
   }
 
   return (
