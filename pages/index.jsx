@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import Image from 'next/image'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useMetaMask } from '../hooks/useMetaMask'
 import { collection } from 'firebase/firestore'
 import { firestore } from '../firebase/clientApp'
@@ -8,14 +8,20 @@ import { useCollection } from 'react-firebase-hooks/firestore'
 
 const Home = () => {
   const { accounts, chainId, balance, message, disableButton, isConnected, connect, disconnect } = useMetaMask()
-  const [loading, setLoading] = useState(true)
-  const [success, setSuccess] = useState('')
-  const [error, setError] = useState('')
+  // const [loading, setLoading] = useState(true)
+  // const [success, setSuccess] = useState('')
+  // const [error, setError] = useState('')
+  const [whitelistUsersCount, setWhitelistUserCount] = useState(0)
 
   const [whitelist, whitelistLoading, whitelistError] = useCollection(
     collection(firestore, 'whitelist'),
     {}
   )
+
+  // Get the number of users in the whitelist
+  useEffect(() => {
+    if (whitelist?.docs?.length > 0) setWhitelistUserCount(whitelist.docs.length)
+  }, [whitelist])
 
   const styles = {
     container: "flex flex-col items-center h-screen"
