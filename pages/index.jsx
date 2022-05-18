@@ -3,12 +3,13 @@ import Image from 'next/image'
 import { collection } from 'firebase/firestore'
 import { firestore } from '../firebase/clientApp'
 import { useCollection } from 'react-firebase-hooks/firestore'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import { useMetaMask } from '../hooks/useMetaMask'
 import { InfosAccount, AddWhitelist } from '../components'
+import { MetamaskContext } from '../context'
 
 const Home = () => {
-  const { accounts, chainId, balance, message, disableButton, isConnected, connect, disconnect } = useMetaMask()
+  const { accounts, chainId, balance, message, disableButton, isConnected, connect } = useContext(MetamaskContext)
   // const [loading, setLoading] = useState(true)
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
