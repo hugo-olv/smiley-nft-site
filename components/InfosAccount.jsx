@@ -1,4 +1,4 @@
-import { ConnectButton } from "./ConnectButton"
+import { ConnectButton } from "."
 
 export const InfosAccount = ({ isConnected, message, balance }) => {
     return (

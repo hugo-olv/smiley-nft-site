@@ -5,7 +5,7 @@ import { firestore } from '../firebase/clientApp'
 import { useCollection } from 'react-firebase-hooks/firestore'
 import { useState, useEffect, useMemo } from 'react'
 import { useMetaMask } from '../hooks/useMetaMask'
-import { InfosAccount } from '../components/InfosAccount'
+import { InfosAccount, AddWhitelist } from '../components'
 
 const Home = () => {
   const { accounts, chainId, balance, message, disableButton, isConnected, connect, disconnect } = useMetaMask()
