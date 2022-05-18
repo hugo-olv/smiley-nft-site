@@ -43,12 +43,14 @@ const Home = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <InfosAccount {...{ isConnected, message, balance, disableButton, connect }} />
-      <AddWhitelist
-        address={accounts[0]}
-        registeredCount={whitelistUsersCount}
-        loading={whitelistLoading}
-        {...{ balance, whitelist, success, setSuccess, error, setError }}
-      />
+      {isConnected && (
+        <AddWhitelist
+          address={accounts[0]}
+          registeredCount={whitelistUsersCount}
+          loading={whitelistLoading}
+          {...{ balance, whitelist, success, setSuccess, error, setError }}
+        />
+      )}
       <p>Number of users : {whitelistUsersCount}</p>
       {(success || error) && <p className={`px-4 py-2 rounded-md ${success ? 'bg-green-500' : 'bg-red-500'}`}>{success || error}</p>}
     </div>
