@@ -40,7 +40,7 @@ export const useMetaMask = () => {
             try {
                 setLoading(true)
                 const _accounts = await getAccounts()
-                if (_accounts.length && !_isConnectCalled.current) await connect(_accounts)
+                if (_accounts.length) await connect(_accounts)
             }
             catch (err) {
                 console.error(err)
