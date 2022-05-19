@@ -25,17 +25,6 @@ export const useMetaMask = () => {
     const [isPending, setIsPending] = useState(false)
     const [loading, setLoading] = useState(false)
 
-
-    // DEBUG (to remove)
-    useEffect(() => {
-        console.log('accounts', accounts)
-        console.log('chain', chain)
-        console.log('balance', balance)
-        console.log('isConnected', isConnected)
-        console.log('loading', loading)
-        console.log('isPending', isPending)
-    }, [accounts, chain, balance, isConnected, loading, isPending])
-
     useEffect(() => {
         if (window.ethereum) setIsAvailable(true)
         _isMounted.current = true
