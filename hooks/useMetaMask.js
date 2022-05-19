@@ -1,159 +1,182 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ethers } from 'ethers'
 
-export const useMetaMask = () => {
-    const [accounts, setAccounts] = useState([])
-    const [chainId, setChaindId] = useState('')
-    const [balance, setBalance] = useState(0)
-    const [message, setMessage] = useState('')
-    const [disableButton, setDisableButton] = useState(false)
-    const [isConnected, setIsConnected] = useState(false)
+const getChainName = chainId => {
+    if (!!Number(chainId) && chainId.length > 9) {
+        return "local";
+    }
+    switch (chainId) {
+        case "1": return "mainnet"
+        case "3": return "ropsten"
+        case "4": return "rinkeby"
+        case "5": return "goerli"
+        case "42": return "kovan"
+        default: return `unknown`
+    }
+}
 
-    // Set initial states on mount.
+export const useMetaMask = () => {
+    const _isMounted = useRef(true)
+    const [accounts, setAccounts] = useState([])
+    const [chain, setChain] = useState('')
+    const [balance, setBalance] = useState(0)
+    const [isAvailable, setIsAvailable] = useState(false)
+    const [isConnected, setIsConnected] = useState(false)
+    const [isPending, setIsPending] = useState(false)
+    const [loading, setLoading] = useState(false)
+
+
+    // DEBUG (to remove)
+    useEffect(() => {
+        console.log('accounts', accounts)
+        console.log('chain', chain)
+        console.log('balance', balance)
+        console.log('isConnected', isConnected)
+        console.log('loading', loading)
+        console.log('isPending', isPending)
+    }, [accounts, chain, balance, isConnected, loading, isPending])
+
+    useEffect(() => {
+        if (window.ethereum) setIsAvailable(true)
+        _isMounted.current = true
+        return () => {
+            _isMounted.current = false
+        }
+    }, [])
+
+    // Check if already connect to Metamask on mount and set the states in consequence.
+    // It avoid having to manually reconnect on page reload for example.
     useEffect(() => {
         (async function () {
             try {
-                // Require metamask installed.
-                isMetamaskInstalled()
-                const [connectedAccount] = await getConnectedAccounts()
-                const chainId = await getChainId()
-
-                if (connectedAccount) setAccounts([connectedAccount])
-                if (chainId) setChaindId(chainId)
+                setLoading(true)
+                const _accounts = await getAccounts()
+                if (_accounts.length && !_isConnectCalled.current) await connect(_accounts)
             }
             catch (err) {
                 console.error(err)
             }
+            finally {
+                setLoading(false)
+            }
         })()
     }, [])
 
-    // Set event listeners + handlers for metamask events on mount.
-    useEffect(() => {
+    const getAccounts = async ({ requestPermission } = { requestPermission: false }) => {
         try {
-            // Require metamask installed.
-            isMetamaskInstalled()
+            if (!window.ethereum) throw Error("Metamask is not available.")
+
+            const accounts = await window.ethereum.request({
+                method: requestPermission ? 'eth_requestAccounts' : 'eth_accounts',
+                params: []
+            })
+
+            return accounts
+
+        } catch (err) {
+            throw err
+        }
+    }
+
+    const getChain = async () => {
+        try {
+            if (!window.ethereum) throw Error("Metamask is not available.")
+
+            const chainId = await window.ethereum.request({
+                method: 'net_version',
+                params: []
+            })
+
+            const _chainInfo = { id: chainId, name: getChainName(chainId) }
+
+            return _chainInfo
+
+        } catch (err) {
+            throw err
+        }
+    }
+
+    const getBalance = async (_accounts) => {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const balanceInWei = await provider.getBalance(_accounts[0])
+            const balanceInEth = ethers.utils.formatEther(balanceInWei)
+            return balanceInEth
+        } catch (err) {
+            throw err
+        }
+    }
+
+    // TODO : Fix the pending detection.
+    // Currently, if a Metamask request is pending and we reload the page, then we call this function again which 
+    // set isPending === true at the beginning, then we accept/decline the request, isPending is not set to false.
+    // This is due to the function reference being lost on reload. 
+    // The function await getAccounts() which is fullfilled when the user accept or decline the Metamask request.
+    // If we reload the page before the promise is fullfilled (the user accept/decline), the current execution of 
+    // the function is aborted without never reaching any catch or finally, so if isPending was set to true at the 
+    // beginnin of the previous execution, it will stay true until we call this function again. 
+    // (it's problematic if isPending is used to disable a button for example. The button will stay disabled)
+    const connect = async (_accounts = []) => {
+        try {
+            setIsPending(true)
+            if (!window.ethereum) throw Error("Metamask is not available.")
+            if (!_isMounted.current) throw Error("Component is not mounted.")
+            if (isConnected) throw Error("You are already connected.")
+
+            // If no accounts was provided, that mean we are not connected and need to request accounts.
+            if (_accounts.length === 0) {
+                _accounts = await getAccounts({ requestPermission: true })
+            }
+
+            setAccounts(_accounts)
+            setIsConnected(true)
+
+            const _chainInfo = await getChain()
+            setChain(_chainInfo)
+
+            const _balance = await getBalance(_accounts)
+            setBalance(_balance)
+
             /**
-             * @param {String} connect - The MetaMask provider emits this event when it first becomes able to submit RPC requests to a chain.
-             * @param {String} disconnect - The MetaMask provider emits this event when it is unable to submit RPC requests to a chain.
-             *                              In general, this will only happen due to network connectivity issues or some unforeseen error.
+             * Metamask Events.
              * @param {String} accountsChanged - The MetaMask provider emits this event whenever the return value of the eth_accounts RPC method changes.
              * @param {String} chainChanged - The MetaMask provider emits this event when the chain changes.
              */
-            window.ethereum.on('connect', handleConnect)
-            window.ethereum.on('disconnect', handleDisconnect)
-            window.ethereum.on('accountsChanged', handleAccountsChange)
-            window.ethereum.on('chainChanged', handleChainChange)
+            window.ethereum.on('accountsChanged', async accounts => {
+                if (accounts.length) {
+                    const _balance = await getBalance(accounts)
+                    setBalance(_balance)
+                }
+                else setBalance(0)
+                setAccounts(accounts)
+                setIsConnected(accounts.length > 0)
+            })
 
-            return () => {
-                window.ethereum.removeListener('connect', handleConnect)
-                window.ethereum.removeListener('disconnect', handleDisconnect)
-                window.ethereum.removeListener('accountsChanged', handleAccountsChange)
-                window.ethereum.removeListener('chainChanged', handleChainChange)
-            }
-        } catch (err) {
-            console.error(err)
-        }
-    }, [])
+            window.ethereum.on('chainChanged', chaindId => {
+                const _chainId = parseInt(chaindId, 16).toString()
+                const _chainInfo = { id: _chainId, name: getChainName(_chainId) }
+                setChain(_chainInfo)
+            })
 
-    // Set states that depends on accounts state.
-    useEffect(() => {
-        try {
-            // Required metamask installed.
-            isMetamaskInstalled()
-            if (accounts.length > 0) {
-                setIsConnected(true)
-                setDisableButton(true)
-                setMessage(`You are connected with this account : ${accounts[0]}`)
-                handleBalanceChange(accounts[0])
-            }
-            else {
-                setIsConnected(false)
-                setDisableButton(false)
-                setMessage('')
-                setBalance(0)
-            }
-        } catch (err) {
-            console.error(err)
-        }
-    }, [accounts])
-
-    // Check if metamask is installed and throw an error if not.
-    const isMetamaskInstalled = () => {
-        if (!window?.ethereum?.isMetaMask) {
-            setDisableButton(true)
-            setMessage('Please install MetaMask')
-            throw new Error('MetamaskNotInstalled')
-        }
-    }
-
-    const getConnectedAccounts = async () => {
-        const accounts = await window.ethereum.request({ method: 'eth_accounts' })
-        return accounts
-    }
-
-    const getChainId = async () => {
-        const chainId = await window.ethereum.request({ method: 'eth_chainId' })
-        return chainId
-    }
-
-    const getBalance = async (account) => {
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const balanceInWei = await provider.getBalance(account)
-        const balanceInEth = ethers.utils.formatEther(balanceInWei)
-        return balanceInEth
-    }
-
-    const handleBalanceChange = async (account) => {
-        const balance = await getBalance(account)
-        setBalance(balance)
-    }
-
-    // TODO : Implement handleConnect()
-    const handleConnect = connectInfo => {
-        console.log(connectInfo)
-    }
-
-    // TODO : Implement handleDisconnect()
-    const handleDisconnect = err => {
-        console.error(err)
-    }
-
-    const handleAccountsChange = accounts => {
-        setAccounts(accounts)
-    }
-
-    const handleChainChange = chainId => {
-        setChaindId(chainId)
-    }
-
-    const connect = async () => {
-        try {
-            isMetamaskInstalled()
-            if (isConnected) return
-
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-            setAccounts(accounts)
+            setIsPending(false)
         }
         catch (err) {
-            if (err.code === 4001) {
-                setMessage('Please connect to MetaMask.')
-                setDisableButton(false)
-            }
-            else if (err.code === -32002) {
-                setMessage('A request is already pending. Open Metasmask.')
-                setDisableButton(true)
-            }
-            else console.error(err)
+            setIsPending(err.code === -32002)
+            console.error(err)
         }
+    }
+
+    // For use as handler in synthetic event (buttons...)
+    // Since function use as event handler receive an event argument as their first argument, it conflict with the actual connect function _accounts argument.
+    const handleConnect = async e => {
+        e.preventDefault()
+        await connect()
     }
 
     return {
-        accounts,
-        chainId,
-        balance,
-        message,
-        disableButton,
-        isConnected,
-        connect
+        metaState: { accounts, chain, balance, isConnected, isPending },
+        loading,
+        connect: handleConnect,
+        isAvailable,
     }
 }

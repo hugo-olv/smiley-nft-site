@@ -4,17 +4,14 @@ import { useMetaMask } from '../hooks/useMetaMask'
 export const MetamaskContext = createContext()
 
 export const MetamaskProvider = ({ children }) => {
-    const { accounts, chainId, balance, message, disableButton, isConnected, connect } = useMetaMask()
+    const { metaState, connect, loading, isAvailable } = useMetaMask()
 
     return (
         <MetamaskContext.Provider value={{
-            accounts,
-            chainId,
-            balance,
-            message,
-            disableButton,
-            isConnected,
-            connect
+            metaState,
+            loading,
+            connect,
+            isAvailable,
         }}>
             {children}
         </MetamaskContext.Provider>

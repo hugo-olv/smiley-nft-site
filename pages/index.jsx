@@ -9,11 +9,17 @@ import { InfosAccount, AddWhitelist } from '../components'
 import { MetamaskContext } from '../context'
 
 const Home = () => {
-  const { accounts, chainId, balance, message, disableButton, isConnected, connect } = useContext(MetamaskContext)
+  const {
+    metaState: { accounts, chain, balance, isConnected },
+    loading,
+    connect,
+  } = useContext(MetamaskContext)
   // const [loading, setLoading] = useState(true)
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
   const [whitelistUsersCount, setWhitelistUserCount] = useState(0)
+
+  const [message, disableButton] = ["Temp", false]
 
   const [whitelist, whitelistLoading, whitelistError] = useCollection(
     collection(firestore, 'whitelist'),

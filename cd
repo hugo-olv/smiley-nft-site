@@ -1,0 +1,29 @@
+[33mcommit aa7395de7db1f11fd0af5a443142b7bd40790869[m[33m ([m[1;36mHEAD -> [m[1;32mdev[m[33m)[m
+Author: themaskedcat <oliveira.developpement@gmail.com>
+Date:   Wed May 18 22:13:47 2022 +0200
+
+    Show AddWhitelist only if user is connected
+
+[33mcommit 6a4268a7b3bdaa5283e27cc1d944f4b69d1ba721[m
+Author: themaskedcat <oliveira.developpement@gmail.com>
+Date:   Wed May 18 22:08:42 2022 +0200
+
+    Move metamask datas to a global context
+
+[33mcommit e2f1d80d87600939f707dd581d652b6f956dc86d[m
+Author: themaskedcat <oliveira.developpement@gmail.com>
+Date:   Wed May 18 21:38:13 2022 +0200
+
+    Commit
+
+[33mcommit a21deffde6ba6a1f6ea4dd2983e5b9d292040e4f[m
+Author: themaskedcat <oliveira.developpement@gmail.com>
+Date:   Wed May 18 17:19:47 2022 +0200
+
+    Create AddWhitelist component
+
+[33mcommit 017a6695e7cc335e6a4685ece26a357647b1adad[m
+Author: themaskedcat <oliveira.developpement@gmail.com>
+Date:   Wed May 18 17:07:44 2022 +0200
+
+    Implement global import for components
