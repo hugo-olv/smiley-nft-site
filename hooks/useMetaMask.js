@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { ethers } from 'ethers'
 
 const getChainName = chainId => {
@@ -50,6 +50,20 @@ export const useMetaMask = () => {
             }
         })()
     }, [])
+
+    // TODO : Trigger multiple time setBalance on-mount.
+    // Fetch and set the balance when accounts || chain change.
+    useEffect(() => {
+        const handleBalanceChange = async () => {
+            console.log('her')
+            if (accounts.length) {
+                const _balance = await getBalance(accounts)
+                setBalance(_balance)
+            }
+            else setBalance(0)
+        }
+        handleBalanceChange()
+    }, [accounts, chain])
 
     const getAccounts = async ({ requestPermission } = { requestPermission: false }) => {
         try {
@@ -123,8 +137,8 @@ export const useMetaMask = () => {
             const _chainInfo = await getChain()
             setChain(_chainInfo)
 
-            const _balance = await getBalance(_accounts)
-            setBalance(_balance)
+            // const _balance = await getBalance(_accounts)
+            // setBalance(_balance)
 
             /**
              * Metamask Events.
@@ -132,11 +146,6 @@ export const useMetaMask = () => {
              * @param {String} chainChanged - The MetaMask provider emits this event when the chain changes.
              */
             window.ethereum.on('accountsChanged', async accounts => {
-                if (accounts.length) {
-                    const _balance = await getBalance(accounts)
-                    setBalance(_balance)
-                }
-                else setBalance(0)
                 setAccounts(accounts)
                 setIsConnected(accounts.length > 0)
             })
