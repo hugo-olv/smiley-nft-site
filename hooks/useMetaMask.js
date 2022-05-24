@@ -23,7 +23,7 @@ export const useMetaMask = () => {
     const [isAvailable, setIsAvailable] = useState(false)
     const [isConnected, setIsConnected] = useState(false)
     const [isPending, setIsPending] = useState(false)
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         if (window.ethereum) setIsAvailable(true)
@@ -38,7 +38,6 @@ export const useMetaMask = () => {
     useEffect(() => {
         (async function () {
             try {
-                setLoading(true)
                 const _accounts = await getAccounts()
                 if (_accounts.length) await connect(_accounts)
             }
