@@ -9,20 +9,26 @@ export const ConnectButton = () => {
         connect,
     } = useContext(MetamaskContext)
 
-    const styles = `
-    ${!isConnected && 'hover:bg-[#763E1A]'}
-    bg-[#F4841F] font-medium text-white py-2 px-4 rounded
-    `
-
+    const styles = {
+        button: `
+        ${loading ? 'bg-gray-500 animate-pulse' : ''}
+        ${!isConnected && !loading ? 'hover:bg-[#763E1A]' : ''}
+        ${!loading ? 'bg-[#F4841F] font-medium text-white' : ''}
+        py-2 px-4 rounded
+        `,
+        text: `${loading ? 'invisible' : ''}`,
+    }
     const text = shortenAddress(accounts[0]) || 'Connect Wallet'
 
     return (
         <button
-            className={styles}
-            disabled={isConnected}
+            className={styles.button}
+            disabled={loading || isConnected}
             onClick={connect}
         >
-            {text}
+            <span className={styles.text}>
+                {text}
+            </span>
         </button>
     )
 }
