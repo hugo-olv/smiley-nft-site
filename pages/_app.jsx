@@ -1,10 +1,13 @@
 import { MetamaskProvider } from '../context'
+import { Layout } from '../components'
 import '../styles/globals.css'
 
 const App = ({ Component, pageProps }) => {
   return (
     <MetamaskProvider>
-      <Component {...pageProps} />
+      <Layout>
+        <Component {...pageProps} />
+      </Layout>
     </MetamaskProvider>
   )
 }

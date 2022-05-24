@@ -1,15 +1,15 @@
-export const ConnectButton = ({ disabled, onClick }) => {
+export const ConnectButton = ({ shortAddress, isConnected = false, onClick }) => {
     const styles = `
-    ${disabled ? 'bg-gray-400' : 'bg-[#F4841F] hover:bg-[#763E1A]'}
-    font-medium text-white py-2 px-4 rounded
+    ${!isConnected && 'hover:bg-[#763E1A]'}
+    bg-[#F4841F] font-medium text-white py-2 px-4 rounded
     `
     return (
         <button
             className={styles}
-            disabled={disabled}
+            disabled={isConnected}
             onClick={onClick}
         >
-            Connect to Metamask
+            {shortAddress || 'Connect Wallet'}
         </button>
     )
 }
