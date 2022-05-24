@@ -55,7 +55,6 @@ export const useMetaMask = () => {
     // Fetch and set the balance when accounts || chain change.
     useEffect(() => {
         const handleBalanceChange = async () => {
-            console.log('her')
             if (accounts.length) {
                 const _balance = await getBalance(accounts)
                 setBalance(_balance)
